@@ -1,7 +1,7 @@
-GenerateFromUML Plugin
-======================
+ModelDrivenRails Plugin
+=======================
 
-GenerateFromUML is a RubyOnRails Plugin that generates models (and
+ModelDrivenRails is a RubyOnRails Plugin that generates models (and
 their migrations, unit tests and fixtures) as well as their
 associations' statements (belongs_to, has_many, ...) from an UML Class
 Diagram.
@@ -9,7 +9,7 @@ Diagram.
 Supported Features
 ==================
 
-Supported are the DIA internal format, as well as XMI.
+Supported is the DIA internal format. XMI support is in progress.
 
 UMLwise it's currently pretty basic. Nothing fancy so far.
 
