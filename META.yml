@@ -1,0 +1,7 @@
+author: phil hofmann
+summary: generate model and their associations from uml
+homepage: http://branch14.org/ruby_on_rails/plugins/generate_from_uml/
+plugin: http://dev.branch14.org/svn/rails_plugins/generate_from_uml/
+license: MIT
+version: 0.1
+rails_version: 1.1.2+

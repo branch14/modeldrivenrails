@@ -1,0 +1,75 @@
+GenerateFromUML Plugin
+======================
+
+GenerateFromUML is a RubyOnRails Plugin that generates models (and
+their migrations, unit tests and fixtures) as well as their
+associations' statements (belongs_to, has_many, ...) from an UML Class
+Diagram.
+
+Supported Features
+==================
+
+Supported are the DIA internal format, as well as XMI.
+
+UMLwise it's currently pretty basic. Nothing fancy so far.
+
+  classes
+  properties
+  associations
+    1 - *
+    0..1 - *
+    * - * (doesn't generate join tables)
+
+An Example
+==========
+
+Lets suppose you have an UML Class Diagram that looks similar to the
+following and is stored in a file named 'diagram.dia'.
+
+  -----------------  1             *  -------------------
+  | Customer      |  ---------------  | Order           |
+  |---------------|                   |-----------------|
+  | +name: string |                   | +number: string |
+  |---------------|                   |-----------------|
+  -----------------                   -------------------
+
+By calling the rake task 'uml:generate' like this:
+
+  $ rake uml:generate filename=diagram.dia
+
+the two models Customer and Order (and their migrations, unit tests
+and fixtures) will be generated.
+
+  $ cat app/models/order.rb
+  class Order < ActiveRecord::Base
+  	belongs_to :customer
+  end
+ 
+  $ cat app/models/customer.rb
+  class Customer < ActiveRecord::Base
+  	has_many :orders
+  end
+ 
+  $ cat db/migrate/001_create_orders.rb
+  class CreateCustomers < ActiveRecord::Migration
+    def self.up
+      create_table :orders do |t|
+        t.string :number
+        t.integer :customer_id
+        t.timestamps
+      end
+    end
+    def self.down
+      drop_table :orders
+    end
+  end
+
+I guess, you got it. Have fun.
+
+FOR THE UNPATIENT WHO READ THE BOTTOM FIRST
+===========================================
+
+  $ rake uml:generate filename=diagram.dia
+
+--
+Copyright (c) 2008 Phil Hofmann, released under the MIT license
