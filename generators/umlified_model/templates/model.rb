@@ -1,5 +1,5 @@
 class <%= class_name %> < ActiveRecord::Base
 
-<%= associations.join("\n") %>
+  <%= associations.join("\n\t") %>
 
 end

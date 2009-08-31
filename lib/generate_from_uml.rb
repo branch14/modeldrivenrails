@@ -65,7 +65,8 @@ module UML
           when '1 -> *', '0..1 -> *', '1 -> n', '0..1 -> n'
             options[:associations] << "has_many :#{assoc.klass.name.underscore.pluralize}"
             # honestly, i had some problems with this one, so i left it out for now
-            # and since i literally stopped using * -> * relationsships it really doesn't bother me anymore
+            # and since i literally stopped using * -> * relationsships
+            # it really doesn't bother me anymore
             #when '* -> *'
             #  options[:associations] << assoc.through ?
             #  "has_many :#{assoc.klass.name.underscore.pluralize}, :through => #{assoc.through.underscore.pluralize}" :
