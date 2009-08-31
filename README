@@ -1,10 +1,11 @@
-ModelDrivenRails Plugin
-=======================
+ModelDriven Rails Plugin
+========================
 
-ModelDrivenRails is a RubyOnRails Plugin that generates models (and
+ModelDriven is a Ruby On Rails Plugin that generates models (and
 their migrations, unit tests and fixtures) as well as their
-associations' statements (belongs_to, has_many, ...) from an UML Class
-Diagram.
+associations' statements (belongs_to, has_many, ...) from UML Class
+Diagrams.
+
 
 Supported Features
 ==================
@@ -15,10 +16,16 @@ UMLwise it's currently pretty basic. Nothing fancy so far.
 
   classes
   properties
-  associations
-    1 - *
-    0..1 - *
-    * - * (doesn't generate join tables)
+  associations:
+    1 - n
+    n - n (does implicitly generate join tables)
+
+Railswise it also resolves 'has_many :through'-associations, if
+'n-n'-associations are named. A intermetiad join model is the
+generated automatically.
+
+Multiplicitywise '1', '0..1', 'n', and '*' are recognized.
+
 
 An Example
 ==========
@@ -26,31 +33,31 @@ An Example
 Lets suppose you have an UML Class Diagram that looks similar to the
 following and is stored in a file named 'diagram.dia'.
 
-  -----------------  1             *  -------------------
+  -----------------  1             n  -------------------
   | Customer      |  ---------------  | Order           |
   |---------------|                   |-----------------|
   | +name: string |                   | +number: string |
   |---------------|                   |-----------------|
   -----------------                   -------------------
 
-By calling the rake task 'uml:generate' like this:
+By calling the rake task 'model_driven:generate' like this:
 
-  $ rake uml:generate filename=diagram.dia
+  $ rake model_driven:generate filename=diagram.dia
 
 the two models Customer and Order (and their migrations, unit tests
 and fixtures) will be generated.
 
   $ cat app/models/order.rb
   class Order < ActiveRecord::Base
-  	belongs_to :customer
+    belongs_to :customer
   end
  
   $ cat app/models/customer.rb
   class Customer < ActiveRecord::Base
-  	has_many :orders
+    has_many :orders
   end
  
-  $ cat db/migrate/001_create_orders.rb
+  $ cat db/migrate/20090601100956_create_orders.rb
   class CreateCustomers < ActiveRecord::Migration
     def self.up
       create_table :orders do |t|
@@ -66,10 +73,11 @@ and fixtures) will be generated.
 
 I guess, you got it. Have fun.
 
+
 FOR THE UNPATIENT WHO READ THE BOTTOM FIRST
 ===========================================
 
-  $ rake uml:generate filename=diagram.dia
+  $ rake model_driven:generate filename=diagram.dia
 
 --
-Copyright (c) 2008 Phil Hofmann, released under the MIT license
+Copyright (c) 2008,2009 Phil Hofmann, released under the MIT license
