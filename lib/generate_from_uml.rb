@@ -96,9 +96,14 @@ module UML
     
     def self.load_dia(options)
       LOG.debug("loading dia with options: #{options}")
-      # dia is gziped xml so we'll load it using zlib and rexml
-      # TODO fallback to ungzip'd attempt of loading the xml
-      root = Zlib::GzipReader.open(options[:filename]) { |gz| REXML::Document.new(gz.read).root }
+      # dia is gziped or nongziped xml
+      begin # try gzip
+        content = Zlib::GzipReader.open(options[:filename]) { |gz| gz.read }
+      rescue # fallback to non gzip
+        content = File.read(options[:filename])
+      end
+      root = REXML::Document.new(content).root
+
       design = Design.new
       # go through the classes of all visible layers
       xpath = '/dia:diagram/dia:layer[@visible="true"]/dia:object[@type="UML - Class"]'
