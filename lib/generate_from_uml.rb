@@ -59,10 +59,10 @@ module UML
         attributes = klass.attributes.map { |a| "#{a.name}:#{a.type}" }
         klass.associations.each do |assoc|
           case assoc.multiplicities
-          when '* -> 1', '* -> 0..1'
+          when '* -> 1', '* -> 0..1', 'n -> 1', 'n -> 0..1'
             options[:associations] << "belongs_to :#{assoc.klass.name.underscore}"
             attributes << "#{assoc.klass.name.underscore}_id:integer"
-          when '1 -> *', '0..1 -> *'
+          when '1 -> *', '0..1 -> *', '1 -> n', '0..1 -> n'
             options[:associations] << "has_many :#{assoc.klass.name.underscore.pluralize}"
             # honestly, i had some problems with this one, so i left it out for now
             # and since i literally stopped using * -> * relationsships it really doesn't bother me anymore
@@ -73,7 +73,11 @@ module UML
           end
         end
         args = ['umlified_model', klass.name] + attributes
-        LOG.debug('-'*60+"\nrunning generator ...\n\targs: #{args.join(' ')}\n\toptions: #{options}\n"+'-'*60)
+        LOG.debug('-'*60)
+        LOG.debug('running generator ...')
+        LOG.debug("\targs: #{args.join(' ')}")
+        LOG.debug("\toptions: #{options.inspect}")
+        LOG.debug('-'*60)
         Rails::Generator::Scripts::Generate.new.run(args, options)
       end
     end
@@ -95,7 +99,7 @@ module UML
     end
     
     def self.load_dia(options)
-      LOG.debug("loading dia with options: #{options}")
+      LOG.debug("loading dia with options: #{options.inspect}")
       # dia is gziped or nongziped xml
       begin # try gzip
         content = Zlib::GzipReader.open(options[:filename]) { |gz| gz.read }
@@ -124,11 +128,13 @@ module UML
       xpath = '/dia:diagram/dia:layer[@visible="true"]/dia:object[@type="UML - Association"]'
       REXML::XPath.each(root, xpath) do |assoc|
         direction = REXML::XPath.first(assoc, 'child::dia:attribute[@name="direction"]/dia:enum').text.to_i
+        # go through multiplicities
         multiplicities = []
         xpath = 'child::dia:attribute[@name="ends"]/dia:composite'
         REXML::XPath.each(assoc, xpath) do |ent|
           multiplicities << dia_string(ent, 'multiplicity')
         end
+        # go through connections
         connections = []
         xpath = 'child::dia:connections/dia:connection'
         REXML::XPath.each(assoc, xpath) do |conn|
