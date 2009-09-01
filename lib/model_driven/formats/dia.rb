@@ -18,9 +18,9 @@ module ModelDriven::Formats::Dia
     end
 
     root = REXML::Document.new(content).root
-    
     design = ModelDriven::Design.new
 
+    # step 1: discover all classes
     # go through the classes of all visible layers
     xpath = '/dia:diagram/dia:layer[@visible="true"]/dia:object[@type="UML - Class"]'
     REXML::XPath.each(root, xpath) do |xml_klass|
@@ -40,6 +40,7 @@ module ModelDriven::Formats::Dia
 
     end
     
+    # step 2: discover all associations
     # go through the associations of all visible layers
     xpath = '/dia:diagram/dia:layer[@visible="true"]/dia:object[@type="UML - Association"]'
     REXML::XPath.each(root, xpath) do |assoc|

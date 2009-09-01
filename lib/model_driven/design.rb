@@ -6,7 +6,7 @@ module ModelDriven
   
   class Design
 
-    #attr_reader :klasses # debugging
+    # attr_reader :klasses # for debugging
     
     def initialize
       @klasses = {}
@@ -17,34 +17,59 @@ module ModelDriven
     end
     
     def associate(oid1, oid2, m1, m2, name)
+
       k1, k2 = @klasses[oid1], @klasses[oid2]
       name = nil if name.empty?
       LOG.debug("ASSOC #{k1.name} #{m1} -> #{m2} #{k2.name} (#{name})")
+
       if (m1=='*' or m1=='n') and (m2=='*' or m2=='n')
+
         if name # named n-n ==> has_many :through
-          oid3 = rand.to_s
-          k3 = Klass.new(oid3, name)
-          self << k3
-          k1 << Association.new(k3, "1 -> n")
-          k2 << Association.new(k3, "1 -> n")
-          k3 << Association.new(k1, "n -> 1")
-          k3 << Association.new(k2, "n -> 1")
+
+          if matches = @klasses.select { |d, k| k.name==name }
+            # if a model with same name exists
+            # it needs to be the jointable model
+            k3 = matches.first
+          else
+            # if no model with same name exists
+            # it will be generated
+            oid3 = rand.to_s
+            k3 = Klass.new(oid3, name)
+            self << k3
+            k1 << Association.new(k3, "1 -> n")
+            k2 << Association.new(k3, "1 -> n")
+            k3 << Association.new(k1, "n -> 1")
+            k3 << Association.new(k2, "n -> 1")
+          end
+
+          # has_many :through
           k1 << Association.new(k2, "1 -> n", name)
           k2 << Association.new(k1, "1 -> n", name)
+
         else # unnamed n-n ==> has_and_belongs_to_many
+
           k1 << Association.new(k2, "n -> n")
           k2 << Association.new(k1, "n -> n")
+
         end
+
       else
+
         k1 << Association.new(k2, "#{m1} -> #{m2}")
         k2 << Association.new(k1, "#{m2} -> #{m1}")
+
       end
+
     end
     
     def emit
+
+      # go through all klasses
       @klasses.each do |oid, klass|
         options = { :associations => [] }
         attributes = klass.attributes.map { |a| "#{a.name}:#{a.type}" }
+
+        # go through all associations of current klass
         klass.associations.each do |assoc|
 
           case assoc.multiplicities
@@ -65,10 +90,12 @@ module ModelDriven
             # split into '1 -> n' relations
 
             # if the connection is unnamed, the following is going to happen
-            options[:associations] << "has_and_belongs_to_many :#{assoc.klass.name.underscore.pluralize}"
+            options[:associations] << "has_and_belongs_to_many :" +
+              assoc.klass.name.underscore.pluralize
 
             # a migration needs to be generated in this case
-            # eg.: script/generate jointable_migration users_roles user_id:integer role_id:integer
+            # eg.: script/generate jointable_migration user_roles\
+            #                      user_id:integer role_id:integer
             n1 = klass.name.underscore
             n2 = assoc.klass.name.underscore
             jt1 = "#{n1.pluralize}_#{n2.pluralize}"
@@ -88,6 +115,9 @@ module ModelDriven
         LOG.debug('running generator for associated model ...')
         LOG.debug("\targs: #{args.join(' ')}")
         LOG.debug("\toptions: #{options.inspect}")
+        # hack! to solve dependency problem on has_many :through
+        # but also eye candy, since assocs will be ordered nicely
+        options[:associations].sort! { |a, b| a.size <=> b.size }
         Rails::Generator::Scripts::Generate.new.run(args, options)
       end
     end
@@ -97,7 +127,7 @@ module ModelDriven
       case ext
       when '.yml' then Formats::Yml::load(options)
       when '.dia' then Formats::Dia::load(options)
-      when '.xmi' then Formats::Xmi::load(options)
+      #when '.xmi' then Formats::Xmi::load(options)
       else
         raise "The format '#{ext}' is not supported"
       end
