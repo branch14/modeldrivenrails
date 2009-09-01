@@ -21,8 +21,8 @@ UMLwise it's currently pretty basic. Nothing fancy so far.
     n - n (does implicitly generate join tables)
 
 Railswise it also resolves 'has_many :through'-associations, if
-'n-n'-associations are named. A intermetiad join model is the
-generated automatically.
+'n-n'-associations are named. An intermediate join model is generated
+automatically if needed.
 
 Multiplicitywise '1', '0..1', 'n', and '*' are recognized.
 
