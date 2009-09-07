@@ -20,6 +20,12 @@ module ModelDriven::Formats::Dia
     root = REXML::Document.new(content).root
     design = ModelDriven::Design.new
 
+    # step 0: detect version of dia 
+    xpath = 'child::dia:attribute[@name="mutltiplicity_a"]'
+    result = REXML::XPath.first(root, xpath)
+    dia_version = result ? '>=0.97' : '<0.97'
+    LOG.debug("detected dia version #{dia_version}")
+
     # step 1: discover all classes
     # go through the classes of all visible layers
     xpath = '/dia:diagram/dia:layer[@visible="true"]/dia:object[@type="UML - Class"]'
@@ -50,9 +56,15 @@ module ModelDriven::Formats::Dia
 
       # go through multiplicities
       multiplicities = []
-      xpath = 'child::dia:attribute[@name="ends"]/dia:composite'
-      REXML::XPath.each(assoc, xpath) do |ent|
-        multiplicities << dia_string(ent, 'multiplicity')
+      case dia_version
+      when '<0.97'
+        xpath = 'child::dia:attribute[@name="ends"]/dia:composite'
+        REXML::XPath.each(assoc, xpath) do |ent|
+          multiplicities << dia_string(ent, 'multiplicity')
+        end
+      when '>=0.97'
+        multiplicities << dia_string(assoc, "multipicity_a")
+        multiplicities << dia_string(assoc, "multipicity_b")
       end
 
       # go through connections
