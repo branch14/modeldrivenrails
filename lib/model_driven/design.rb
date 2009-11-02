@@ -3,19 +3,19 @@ require 'logger'
 LOG = Logger.new(STDOUT)
 
 module ModelDriven
-  
+
   class Design
 
     # attr_reader :klasses # for debugging
-    
+
     def initialize
       @klasses = {}
     end
-    
+
     def <<(klass)
       @klasses[klass.oid] = klass
     end
-    
+
     def associate(oid1, oid2, m1, m2, name)
 
       k1, k2 = @klasses[oid1], @klasses[oid2]
@@ -61,7 +61,7 @@ module ModelDriven
       end
 
     end
-    
+
     def emit
 
       # go through all klasses
@@ -107,6 +107,8 @@ module ModelDriven
               LOG.debug('running generator for jointable migration ...')
               LOG.debug("\targs: #{args.join(' ')}")
               Rails::Generator::Scripts::Generate.new.run(args)
+              # hack! to solve the timestamp issue with migrations
+              sleep 1
             end
 
           end
@@ -119,15 +121,17 @@ module ModelDriven
         # but also eye candy, since assocs will be ordered nicely
         options[:associations].sort! { |a, b| a.size <=> b.size }
         Rails::Generator::Scripts::Generate.new.run(args, options)
+        # hack! to solve the timestamp issue with migrations
+        sleep 1
       end
     end
-    
+
     def self.load(options)
       ext = File.extname(options[:filename])
       case ext
       when '.yml' then Formats::Yml::load(options)
       when '.dia' then Formats::Dia::load(options)
-      #when '.xmi' then Formats::Xmi::load(options)
+        #when '.xmi' then Formats::Xmi::load(options)
       else
         raise "The format '#{ext}' is not supported"
       end
@@ -138,11 +142,11 @@ module ModelDriven
       pattern = "#{migration_directory}/[0-9]*_*.rb"
       Dir.glob(pattern).grep(/[0-9]+_#{file_name}.rb$/)
     end
-    
+
     def migration_exists?(file_name)
       not existing_migrations(file_name).empty?
     end
 
   end
-  
+
 end
