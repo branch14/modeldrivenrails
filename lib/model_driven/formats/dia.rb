@@ -21,7 +21,7 @@ module ModelDriven::Formats::Dia
     design = ModelDriven::Design.new
 
     # step 0: detect version of dia 
-    xpath = 'child::dia:attribute[@name="mutltiplicity_a"]'
+    xpath = 'descendant::dia:attribute[@name="multipicity_a"]'
     result = REXML::XPath.first(root, xpath)
     dia_version = result ? '>=0.97' : '<0.97'
     LOG.debug("detected dia version #{dia_version}")
