@@ -120,9 +120,13 @@ module ModelDriven
         # hack! to solve dependency problem on has_many :through
         # but also eye candy, since assocs will be ordered nicely
         options[:associations].sort! { |a, b| a.size <=> b.size }
-        Rails::Generator::Scripts::Generate.new.run(args, options)
-        # hack! to solve the timestamp issue with migrations
-        sleep 1
+        unless  migration_exists?("create_" + klass.name.underscore.pluralize)
+          Rails::Generator::Scripts::Generate.new.run(args, options)
+          # hack! to solve the timestamp issue with migrations
+          sleep 1
+        else
+          LOG.debug('WARNING: Migration already exists. Skipping ...')
+        end
       end
     end
 
